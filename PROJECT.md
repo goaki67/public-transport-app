@@ -10,4 +10,33 @@ More information about the GTFS format and the data given in this file is availa
 2. [Google's developer portal](https://developers.google.com/transit/gtfs/reference)
 
 ## Real Time Data
+For real time data we'll use the `https://open-bus-stride-api.hasadna.org.il/` API, which docs can be found at [docs](https://open-bus-stride-api.hasadna.org.il/docs).
+The API has the following key sections:
 
+### 1. `/siri_vehicle_locations/list`
+Provides the raw, high-frequency physical parameters of every active bus on the road. This feed drives the live map graphics and serves as the baseline data for proximity math.
+* **Fields for The Frontend:**
+  * `lat` / `lon` *(float)*: The current GPS coordinates of the bus. Used to draw and update vehicle positions.
+  * `bearing` *(int)*: Heading direction in degrees (0 to 360). Used to orient the vehicle map marker arrow in the correct direction of travel.
+* **Fields for Route Calculations:**
+  * `siri_ride_id` *(int)*: The identifier that links the bus to a specific operational journey.
+  * `velocity` *(int)*: Instantaneous speed in km/h. Used by the backend to calculate delays, adjust ETA forecasts, and implement dead reckoning extrapolation routines between telemetry packets.
+  * `recorded_at_time` *(timestamp)*: The exact moment the vehicle pinged its location. Used for filtering out old points and ensuring calculation freshness.
+* **Other:**
+  * `get_count=false`: Skips backend aggregation to maximize API processing and transfer speed.
+  * `recorded_at_time_from` / `recorded_at_time_to`: Filters for a narrow time window to extract the most recent pings.
+
+### 2. `/siri_rides/list`
+Acts as the relational translation layer. It bridges transient live vehicle telemetry directly to our GTFS data.
+* **Fields for Route Calculations:**
+  * `id` *(int)*: Mapped directly against the vehicle location's `siri_ride_id`.
+  * `gtfs_ride_id` *(int/string)*: This corresponds directly to the static `trip_id` inside the GTFS `trips.txt` file. This lets the backend look up the scheduled path, stop sequence order, and target arrival times for the moving bus.
+  * `scheduled_start_time` *(timestamp)*: Used to determine if a run left its origin terminal delayed or ahead of schedule, adjusting ETA baselines prior to route progress math.
+* **Fields for App Frontend:**
+  * `vehicle_ref` *(string)*: The unique fleet number or license plate of the physical bus. Allows the user interface to show granular vehicle details or let users track a highly specific bus block across multiple routes.
+
+### 3. `/siri_routes/list`
+Provides technical operational metadata for the route associated with a live ride structure.
+* **Fields for App Frontend:**
+  * `line_ref` *(int)*: The absolute internal line reference identifier mapped by the MoT.
+  * `operator_ref` *(int)*: The ID of the executing transit agency (e.g., Egged = 3, Dan = 5, Kavim = 15).
