@@ -27,7 +27,7 @@ db = connect("data/data.db")
 print("connected to db")
 for filename in listdir("data/text/"):
     df = read_csv("data/text/" + filename)
-    df.to_sql(filename, db)
+    df.to_sql(filename, db, index=False)
     unlink("data/text/" + filename)
     print("proccessed " + filename)
 
