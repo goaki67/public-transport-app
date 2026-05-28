@@ -8,6 +8,7 @@ The GTFS data is available from the FTP address ftp://gtfs.mot.gov.il/ or ftp://
 More information about the GTFS format and the data given in this file is available at:
 1. [MoT document](https://www.gov.il/BlobFolder/generalpage/gtfs_general_transit_feed_specifications/he/GTFS%20-%20Developer%20Information.pdf)
 2. [Google's developer portal](https://developers.google.com/transit/gtfs/reference)
+We'll store the data in a relational database with spatial extension like PostGIS. We use this kind of database because of the inherently relational nature of the data (e.g. a route has many trips which have many stops, etc.). The spatial extension is used for fast geographic searching.
 
 ## Real Time Data
 For real time data we'll use the `https://open-bus-stride-api.hasadna.org.il/` API, which docs can be found at [docs](https://open-bus-stride-api.hasadna.org.il/docs).
@@ -40,3 +41,7 @@ Provides technical operational metadata for the route associated with a live rid
 * **Fields for App Frontend:**
   * `line_ref` *(int)*: The absolute internal line reference identifier mapped by the MoT.
   * `operator_ref` *(int)*: The ID of the executing transit agency (e.g., Egged = 3, Dan = 5, Kavim = 15).
+
+The data contains a continuous stream of raw variables (current GPS coordinates, direction, and instantaneous speed) broadcasting from active buses every few seconds. TO store this data we will use an in-memory cache because writing the data into disk will be a major bottleneck.
+
+Both data types (the static and real time) have a "Journey id" that can be used to combine the live position with our static data, with this knowledge the backend would be able to calculate if the bust is early, late, or on time.
