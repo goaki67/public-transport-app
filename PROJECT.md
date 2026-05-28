@@ -1,7 +1,7 @@
 ## The project will get its data from this main sources:
 1. static GTFS feed from the ministry of transportation
 2. GTFS real time alerts from the MOT via a service who's URL is not publicly disclosed
-3. hopefully The MOT SIRI-SM system for real time bus positions and arrival times
+3. the open bus stride api 
 
 ## Static data
 The GTFS data is available from the FTP address ftp://gtfs.mot.gov.il/ or ftp://199.203.58.18/ or https://gtfs.mot.gov.il/gtfsfiles/ under the name israel-public-transportation.zip, the file is updated nightly.
